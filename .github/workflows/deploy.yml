@@ -1,0 +1,28 @@
+name: Publicar Flutter Web no GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Criar plataforma web e instalar dependencias
+        run: |
+          flutter create --platforms web .
+          flutter pub get
+      - name: Compilar site para a subpasta do repositorio
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      - name: Publicar somente build/web na branch gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          force_orphan: true
